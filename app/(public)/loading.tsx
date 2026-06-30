@@ -1,0 +1,13 @@
+import { GraduationCap } from "lucide-react";
+
+export default function PublicLoading() {
+  return (
+    <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4">
+      <div className="relative flex h-14 w-14 items-center justify-center">
+        <span className="absolute inset-0 animate-spin rounded-full border-[3px] border-navy-100 border-t-navy-600" />
+        <GraduationCap className="h-6 w-6 text-navy-600" />
+      </div>
+      <p className="text-sm text-muted-foreground">Loading Bright Future Academy…</p>
+    </div>
+  );
+}

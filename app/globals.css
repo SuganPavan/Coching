@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 30% 98%;
+    --foreground: 215 45% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 45% 12%;
+
+    --primary: 211 53% 24%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 32 18% 94%;
+    --secondary-foreground: 215 45% 16%;
+
+    --muted: 32 18% 94%;
+    --muted-foreground: 215 16% 42%;
+
+    --accent: 33 95% 53%;
+    --accent-foreground: 215 45% 12%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 60% 32%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 211 53% 24%;
+
+    --radius: 0.625rem;
+
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+    --font-display: "Inter", system-ui, -apple-system, sans-serif;
+  }
+
+  .dark {
+    --background: 215 45% 8%;
+    --foreground: 32 18% 94%;
+    --card: 215 40% 11%;
+    --card-foreground: 32 18% 94%;
+    --primary: 211 60% 60%;
+    --primary-foreground: 215 45% 10%;
+    --secondary: 215 35% 16%;
+    --secondary-foreground: 32 18% 94%;
+    --muted: 215 35% 16%;
+    --muted-foreground: 215 15% 65%;
+    --accent: 33 90% 58%;
+    --accent-foreground: 215 45% 10%;
+    --border: 215 30% 20%;
+    --input: 215 30% 20%;
+    --ring: 211 60% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}
+
+/* Smooth scrolling for anchor-link navigation and scroll-snap interactions
+   on the public marketing site. This must live on `html` because
+   scroll-behavior only affects the actual document scrolling box — it has
+   no effect when applied to an inner wrapper div. The admin panel never
+   calls scrollIntoView/scrollTo, so this has no behavioral effect there. */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  /* ScrollReveal sections should appear instantly rather than fade/slide in
+     for anyone who has reduced motion enabled. */
+  .transition-all {
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .container-edge {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Shared vertical rhythm for homepage sections.
+     Mobile: 48px · Tablet: 64px · Desktop: 80px — sits at the top of the
+     40–56px mobile / 64–80px desktop range. Previously scaled up to 112px
+     on desktop, which was the main cause of the page feeling empty; this
+     keeps every section's rhythm consistent while staying compact. */
+  .section-padding {
+    @apply py-12 md:py-16 lg:py-20;
+  }
+
+  /* Tighter variant for visually "thin" bands (feature strip, contact/CTA
+     strip) that are intentionally more compact than full content sections. */
+  .section-padding-sm {
+    @apply py-8 md:py-10 lg:py-12;
+  }
+}
