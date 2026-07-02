@@ -9,7 +9,17 @@ import type { StudentDTO } from "@/types";
 
 async function getStudents(): Promise<StudentDTO[]> {
   await dbConnect();
-  const students = await Student.find({ isActive: true }).sort({ createdAt: -1 }).lean();
+  const students = await Student.aggregate([
+    { $match: { isActive: true } },
+    {
+      $addFields: {
+        pendingFee: {
+          $max: [{ $subtract: ["$totalFee", "$feesPaid"] }, 0],
+        },
+      },
+    },
+    { $sort: { createdAt: -1 } },
+  ]);
   return JSON.parse(JSON.stringify(students));
 }
 

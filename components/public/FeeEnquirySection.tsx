@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CreditCard, Star } from "lucide-react";
 import EnquiryForm from "@/components/public/EnquiryForm";
+import ScrollReveal from "@/components/public/ScrollReveal";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 
@@ -39,11 +40,12 @@ export default async function FeeEnquirySection() {
         <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
 
           {/* ── Col 1: Fee Structure ── */}
-          <div className="flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+          <ScrollReveal delay={0} className="h-full">
+          <div className="hover-lift flex h-full flex-col rounded-2xl border border-gray-200 bg-white shadow-soft hover:shadow-premium">
             {/* Fixed header — same padding/height as other cards */}
             <div className="border-b border-gray-100 px-6 py-5">
-              <h3 className="text-lg font-bold text-navy-700">Fee Structure</h3>
-              <div className="mt-1 h-0.5 w-8 rounded bg-navy-700" />
+              <h3 className="font-display text-lg font-bold text-navy-700">Fee Structure</h3>
+              <span className="heading-rule mt-1 !w-8" />
             </div>
 
             {/* Scrollable fee table fills remaining space */}
@@ -57,7 +59,7 @@ export default async function FeeEnquirySection() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {feeRows.map((row, i) => (
-                    <tr key={i}>
+                    <tr key={i} className="transition-colors hover:bg-navy-50/60">
                       <td className="py-2.5 text-xs text-gray-700">{row.label}</td>
                       <td className="py-2.5 text-right text-xs font-bold text-navy-700">
                         ₹{Math.round(row.fee / 12).toLocaleString("en-IN")}
@@ -72,7 +74,7 @@ export default async function FeeEnquirySection() {
             <div className="border-t border-gray-100 px-6 py-4">
               <Link
                 href="/pay-fees"
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-navy-700 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-800"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy-700 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:bg-navy-800 hover:shadow-premium"
               >
                 <CreditCard className="h-4 w-4" />
                 Pay Fees Online
@@ -82,13 +84,15 @@ export default async function FeeEnquirySection() {
               </p>
             </div>
           </div>
+          </ScrollReveal>
 
           {/* ── Col 2: Enquire Now ── */}
-          <div className="flex h-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+          <ScrollReveal delay={150} className="h-full">
+          <div className="hover-lift flex h-full flex-col rounded-2xl border border-gray-200 bg-white shadow-soft hover:shadow-premium">
             {/* Fixed header — same padding/height as col 1 */}
             <div className="border-b border-gray-100 px-6 py-5">
-              <h3 className="text-lg font-bold text-navy-700">Enquire Now</h3>
-              <div className="mt-1 h-0.5 w-8 rounded bg-navy-700" />
+              <h3 className="font-display text-lg font-bold text-navy-700">Enquire Now</h3>
+              <span className="heading-rule mt-1 !w-8" />
             </div>
 
             {/* Form content */}
@@ -96,12 +100,15 @@ export default async function FeeEnquirySection() {
               <EnquiryForm compact />
             </div>
           </div>
+          </ScrollReveal>
 
           {/* ── Col 3: Testimonial ── */}
-          <div className="flex h-full flex-col rounded-xl bg-navy-700 text-white shadow-sm">
+          <ScrollReveal delay={300} className="h-full">
+          <div className="hover-lift relative flex h-full flex-col overflow-hidden rounded-2xl bg-gradient-to-br from-navy-700 to-navy-900 text-white shadow-soft hover:shadow-premium">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-saffron-400/10 blur-2xl" aria-hidden="true" />
             {/* Fixed header — matching padding but on dark background */}
-            <div className="border-b border-white/10 px-6 py-5">
-              <h3 className="text-lg font-bold text-white leading-snug">
+            <div className="relative border-b border-white/10 px-6 py-5">
+              <h3 className="font-display text-lg font-bold leading-snug text-white">
                 Proven Results.<br />Trusted by Parents.
               </h3>
             </div>
@@ -128,6 +135,7 @@ export default async function FeeEnquirySection() {
               </div>
             </div>
           </div>
+          </ScrollReveal>
 
         </div>
       </div>

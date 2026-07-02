@@ -30,7 +30,15 @@ export default function AttendanceManager({ allStudents }: { allStudents: Studen
   const loadAttendance = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/attendance?date=${date}&class=${encodeURIComponent(studentClass)}`);
+      const res = await fetch(
+        `/api/attendance?date=${date}&class=${encodeURIComponent(studentClass)}`
+      );
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.error || `Server error ${res.status}`);
+      }
+
       const data = await res.json();
 
       const initialStatus: StatusMap = {};
@@ -41,16 +49,19 @@ export default function AttendanceManager({ allStudents }: { allStudents: Studen
       });
 
       if (data?.records) {
-        data.records.forEach((r: { studentId: string; status: "present" | "absent" | "late"; remarks?: string }) => {
-          initialStatus[r.studentId] = r.status;
-          initialRemarks[r.studentId] = r.remarks || "";
-        });
+        data.records.forEach(
+          (r: { studentId: string; status: "present" | "absent" | "late"; remarks?: string }) => {
+            initialStatus[r.studentId] = r.status;
+            initialRemarks[r.studentId] = r.remarks || "";
+          }
+        );
       }
 
       setStatus(initialStatus);
       setRemarks(initialRemarks);
-    } catch {
-      toast.error("Failed to load attendance for this date.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to load attendance.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -85,10 +96,14 @@ export default function AttendanceManager({ allStudents }: { allStudents: Studen
         body: JSON.stringify({ date, class: studentClass, records }),
       });
 
-      if (!res.ok) throw new Error("Failed to save");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.error || "Failed to save");
+      }
       toast.success("Attendance saved successfully.");
-    } catch {
-      toast.error("Failed to save attendance.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save attendance.";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -173,7 +188,7 @@ export default function AttendanceManager({ allStudents }: { allStudents: Studen
                   </TableCell>
                   <TableCell>
                     <Input
-                      placeholder="—"
+                      placeholder="-"
                       value={remarks[s._id] || ""}
                       onChange={(e) => setRemarks((r) => ({ ...r, [s._id]: e.target.value }))}
                       className="max-w-xs"

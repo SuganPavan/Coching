@@ -32,10 +32,10 @@
     --input: 215 20% 88%;
     --ring: 211 53% 24%;
 
-    --radius: 0.625rem;
+    --radius: 0.875rem;
 
     --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-    --font-display: "Inter", system-ui, -apple-system, sans-serif;
+    --font-display: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
   }
 
   .dark {
@@ -65,6 +65,10 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
   }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 }
 
 /* Smooth scrolling for anchor-link navigation and scroll-snap interactions
@@ -85,6 +89,11 @@ html {
   .transition-all {
     transition-duration: 0.01ms !important;
     transform: none !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -109,5 +118,89 @@ html {
      strip) that are intentionally more compact than full content sections. */
   .section-padding-sm {
     @apply py-8 md:py-10 lg:py-12;
+  }
+
+  /* ---- Premium design-system utilities (public site) ---- */
+
+  /* Soft frosted-glass card surface, used over tinted/dark backgrounds. */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  .glass-panel-dark {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* Elevation scale for interactive cards. */
+  .shadow-soft {
+    box-shadow: 0 2px 8px -2px rgba(16, 33, 55, 0.08), 0 1px 2px rgba(16, 33, 55, 0.04);
+  }
+  .shadow-premium {
+    box-shadow: 0 20px 40px -16px rgba(16, 33, 55, 0.22), 0 4px 12px -4px rgba(16, 33, 55, 0.1);
+  }
+  .shadow-glow-accent {
+    box-shadow: 0 12px 32px -12px rgba(245, 135, 15, 0.45);
+  }
+
+  /* Hover-lift used across cards, faculty tiles, course tiles. */
+  .hover-lift {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-6px);
+  }
+
+  /* Animated gradient underline used beneath section eyebrows/headings. */
+  .heading-rule {
+    display: block;
+    height: 3px;
+    width: 2.75rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(33 95% 53%));
+  }
+
+  .bg-grid-fade {
+    background-image:
+      linear-gradient(to bottom, rgba(238, 242, 247, 0.9), rgba(238, 242, 247, 0.4)),
+      linear-gradient(rgba(30, 58, 95, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 58, 95, 0.06) 1px, transparent 1px);
+    background-size: 100% 100%, 32px 32px, 32px 32px;
+  }
+}
+
+@layer utilities {
+  @keyframes float-slow {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-14px) rotate(3deg); }
+  }
+  @keyframes float-slower {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .animate-float-slow {
+    animation: float-slow 7s ease-in-out infinite;
+  }
+  .animate-float-slower {
+    animation: float-slower 9s ease-in-out infinite;
+  }
+  .animate-glow-pulse {
+    animation: glow-pulse 3s ease-in-out infinite;
   }
 }

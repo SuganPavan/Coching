@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, Users, UsersRound, ClipboardCheck, UserCheck } from "lucide-react";
 
 const FEATURE_PILLS = [
@@ -11,14 +10,28 @@ const FEATURE_PILLS = [
 
 export default function Hero() {
   return (
-    <section className="bg-[#f0f4f8]">
-      <div className="container-edge grid min-h-[520px] items-center gap-8 py-10 lg:grid-cols-2 lg:gap-12 lg:py-14">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#eef2f7] to-[#f6f8fb]">
+      {/* Decorative floating shapes — purely ambient, ignored by assistive tech */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -left-16 top-10 h-56 w-56 animate-float-slow rounded-full bg-navy-200/40 blur-3xl" />
+        <div className="absolute -right-10 top-24 h-72 w-72 animate-float-slower rounded-full bg-saffron-200/50 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-40 w-40 animate-float-slow rounded-full bg-navy-100/60 blur-2xl" style={{ animationDelay: "1.5s" }} />
+      </div>
+
+      <div className="container-edge relative grid min-h-[560px] items-center gap-8 py-12 lg:grid-cols-2 lg:gap-12 lg:py-16">
         {/* Left — text */}
         <div>
-          <h1 className="text-balance text-4xl font-bold leading-[1.12] text-navy-700 sm:text-5xl lg:text-[2.9rem]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white/70 px-3.5 py-1.5 text-xs font-semibold text-navy-700 shadow-soft backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-glow-pulse" />
+            Admissions open for Class XI &amp; XII
+          </span>
+
+          <h1 className="text-balance mt-5 font-display text-4xl font-extrabold leading-[1.12] text-navy-700 sm:text-5xl lg:text-[3rem]">
             Building Strong<br />
             Foundations for<br />
-            <span className="text-navy-600">Academic Excellence</span>
+            <span className="bg-gradient-to-r from-navy-700 via-navy-600 to-saffron-500 bg-clip-text text-transparent">
+              Academic Excellence
+            </span>
           </h1>
           <p className="mt-4 max-w-md text-base leading-relaxed text-gray-600">
             Expert faculty, personalized attention and proven results – shaping the leaders of tomorrow.
@@ -29,7 +42,7 @@ export default function Hero() {
             {FEATURE_PILLS.map((f) => (
               <div
                 key={f.label}
-                className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-sm"
+                className="hover-lift flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 shadow-soft hover:border-navy-200 hover:shadow-premium"
               >
                 <f.icon className="h-4 w-4 shrink-0 text-navy-600" />
                 <span className="text-xs font-medium text-gray-700">{f.label}</span>
@@ -41,16 +54,16 @@ export default function Hero() {
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
               href="/contact"
-              className="inline-flex items-center gap-2 rounded-md bg-navy-700 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-navy-800"
+              className="group inline-flex items-center gap-2 rounded-xl bg-navy-700 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:bg-navy-800 hover:shadow-premium"
             >
-              Enquire Now <ArrowRight className="h-4 w-4" />
+              Enquire Now <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
             {/* WhatsApp CTA */}
             <a
               href="https://wa.me/919876543210"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-50"
             >
               {/* WhatsApp SVG icon */}
               <svg viewBox="0 0 24 24" className="h-4 w-4 fill-[#25D366]" xmlns="http://www.w3.org/2000/svg">
@@ -63,23 +76,33 @@ export default function Hero() {
 
         {/* Right — hero image */}
         <div className="relative">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-lg">
-            <Image
-              src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=1200&q=80"
-              alt="Students studying at Bright Future Academy"
-              fill
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-              priority
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl shadow-premium ring-1 ring-white/60">
+            <video
+              src="/videos/hero-students.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Students at Bright Future Academy"
+              className="h-full w-full object-cover"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-navy-900/25 via-transparent to-transparent" />
           </div>
+
+          {/* Floating stat chip */}
+          <div className="glass-panel absolute -left-4 top-6 hidden rounded-2xl px-4 py-3 shadow-premium sm:flex sm:flex-col animate-float-slower">
+            <span className="font-display text-xl font-bold text-navy-700">95%+</span>
+            <span className="text-[11px] text-navy-700/70">Success rate</span>
+          </div>
+
           {/* Book stack decoration — matches design */}
           <div className="absolute -bottom-3 right-4 hidden flex-col gap-0.5 lg:flex">
             {["#1e3a8a","#2563eb","#f97316"].map((color, i) => (
               <div
                 key={i}
                 style={{ backgroundColor: color }}
-                className="h-5 w-28 rounded-sm shadow-sm"
+                className="h-5 w-28 rounded-sm shadow-soft"
               />
             ))}
           </div>

@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { CLASS_OPTIONS } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 
 export default function EnquiryForm({ compact = false }: { compact?: boolean }) {
   const [name, setName] = useState("");
@@ -81,9 +80,8 @@ export default function EnquiryForm({ compact = false }: { compact?: boolean }) 
         onChange={(e) => setMessage(e.target.value)}
         rows={compact ? 3 : 4}
       />
-      <Button type="submit" variant="accent" className="w-full" disabled={submitting}>
-        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-        Submit enquiry
+      <Button type="submit" variant="accent" size="lg" className="w-full" loading={submitting}>
+        {submitting ? "Submitting…" : "Submit enquiry"}
       </Button>
     </form>
   );

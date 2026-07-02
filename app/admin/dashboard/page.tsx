@@ -1,116 +1,58 @@
 import Link from "next/link";
-import { Users, ClipboardCheck, IndianRupee, AlertCircle, UserPlus, CalendarCheck, Wallet, Megaphone, ArrowRight } from "lucide-react";
+import {
+  Users, ClipboardCheck, IndianRupee, AlertCircle,
+  UserPlus, CalendarCheck, Wallet, Megaphone, ArrowRight,
+} from "lucide-react";
 import AdminHeader from "@/components/admin/Header";
 import DashboardStatCard from "@/components/admin/DashboardStats";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getUTCDayBounds } from "@/lib/utils";
+import { getDashboardFeeTotals } from "@/lib/data";
 import { auth } from "@/auth";
 import dbConnect from "@/lib/db";
 import Student from "@/models/Student";
 import Faculty from "@/models/Faculty";
 import Attendance from "@/models/Attendance";
-import Fee from "@/models/Fee";
 import Enquiry from "@/models/Enquiry";
 
 async function getDashboardData() {
   await dbConnect();
 
-  const [totalStudents] = await Promise.all([Student.countDocuments({ isActive: true })]);
-  await Faculty.countDocuments({ isActive: true }); // ensure model is registered
+  // Register Faculty model so populate() works elsewhere
+  await Faculty.countDocuments({ isActive: true });
 
-  // --- Attendance today ---
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // Total active students
+  const totalStudents = await Student.countDocuments({ isActive: true });
 
-  const todaysAttendance = await Attendance.find({ date: { $gte: today, $lt: tomorrow } }).lean();
-  const presentToday = todaysAttendance.reduce(
-    (sum, a) => sum + a.records.filter((r) => r.status === "present").length,
-    0
-  );
+  // --- Present today ---
+  // Logic:
+  //   - Find all attendance docs saved for today
+  //   - Count students explicitly marked "present" or "late"
+  //   - Students not in any attendance doc are NOT counted
+  //     (attendance must be actively saved to reflect on dashboard)
+  const { start: todayStart, end: todayEnd } = getUTCDayBounds(new Date());
 
-  // --- Fee calculations - always read from the Fee ledger (source of truth) ---
-  //
-  // IMPORTANT: We do NOT use Student.feesPaid for dashboard totals.
-  // Student.feesPaid is a denormalised cache that can drift out of sync with
-  // the actual Fee documents (e.g. seeded data uses a hardcoded past date).
-  // The Fee collection is the authoritative ledger of real transactions.
-  //
-  // IMPORTANT: We also exclude fees belonging to deactivated students.
-  // Student deletion is a soft delete (isActive: false) that intentionally
-  // preserves their Fee history for accounting purposes (see app/api/students/[id]/route.ts).
-  // But "Fees Collected" on the dashboard should reflect money tied to
-  // currently active students, so a deleted test/duplicate student's old
-  // payment doesn't keep inflating the total forever.
+  const todayDocs = await Attendance.find({
+    date: { $gte: todayStart, $lt: todayEnd },
+  }).lean();
 
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const presentToday = todayDocs.reduce((sum, doc) => {
+    return (
+      sum +
+      doc.records.filter(
+        (r) => r.status === "present" || r.status === "late"
+      ).length
+    );
+  }, 0);
 
-  // All-time total collected from active students only
-  const allTimeAgg = await Fee.aggregate([
-    {
-      $lookup: {
-        from: "students",
-        localField: "studentId",
-        foreignField: "_id",
-        as: "student",
-      },
-    },
-    { $unwind: "$student" },
-    { $match: { "student.isActive": true } },
-    { $group: { _id: null, total: { $sum: "$amount" } } },
-  ]);
-  const feesCollectedAllTime = allTimeAgg[0]?.total || 0;
-
-  // This month's collections from active students only
-  const thisMonthAgg = await Fee.aggregate([
-    { $match: { paymentDate: { $gte: startOfMonth } } },
-    {
-      $lookup: {
-        from: "students",
-        localField: "studentId",
-        foreignField: "_id",
-        as: "student",
-      },
-    },
-    { $unwind: "$student" },
-    { $match: { "student.isActive": true } },
-    { $group: { _id: null, total: { $sum: "$amount" } } },
-  ]);
-  const feesCollectedThisMonth = thisMonthAgg[0]?.total || 0;
-
-  // Pending fees = sum of totalFee across active students MINUS all fees
-  // ever collected in the Fee ledger for those students.
-  // $max with 0 prevents negative values when feesPaid > totalFee.
-  const pendingAgg = await Student.aggregate([
-    { $match: { isActive: true } },
-    {
-      $lookup: {
-        from: "fees",
-        localField: "_id",
-        foreignField: "studentId",
-        as: "payments",
-      },
-    },
-    {
-      $project: {
-        totalFee: 1,
-        actualPaid: { $sum: "$payments.amount" },
-      },
-    },
-    {
-      $project: {
-        pending: {
-          $max: [{ $subtract: ["$totalFee", "$actualPaid"] }, 0],
-        },
-      },
-    },
-    { $group: { _id: null, total: { $sum: "$pending" } } },
-  ]);
-  const pendingFees = pendingAgg[0]?.total || 0;
+  // --- Fee totals from shared helper (always from Fee ledger, never Student.feesPaid) ---
+  const { allTime: feesCollectedAllTime, thisMonth: feesCollectedThisMonth, pending: pendingFees } =
+    await getDashboardFeeTotals();
 
   // --- Recent data ---
-  const recentStudents = await Student.find({ isActive: true }).sort({ createdAt: -1 }).limit(4).lean();
-  const recentEnquiries = await Enquiry.find().sort({ createdAt: -1 }).limit(3).lean();
+  const [recentStudents, recentEnquiries] = await Promise.all([
+    Student.find({ isActive: true }).sort({ createdAt: -1 }).limit(4).lean(),
+    Enquiry.find().sort({ createdAt: -1 }).limit(3).lean(),
+  ]);
 
   return {
     totalStudents,
@@ -118,8 +60,8 @@ async function getDashboardData() {
     feesCollectedThisMonth,
     feesCollectedAllTime,
     pendingFees,
-    recentStudents,
-    recentEnquiries,
+    recentStudents: JSON.parse(JSON.stringify(recentStudents)),
+    recentEnquiries: JSON.parse(JSON.stringify(recentEnquiries)),
   };
 }
 
@@ -130,7 +72,11 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <AdminHeader title={`Welcome, ${adminName}!`} subtitle="Manage your academy easily." adminName={adminName} />
+      <AdminHeader
+        title={"Welcome, " + adminName + "!"}
+        subtitle="Manage your academy easily."
+        adminName={adminName}
+      />
 
       <div className="p-4 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -156,7 +102,7 @@ export default async function AdminDashboardPage() {
             label="Fees collected (all time)"
             value={formatCurrency(data.feesCollectedAllTime)}
             href="/admin/fees"
-            linkLabel={`This month: ${formatCurrency(data.feesCollectedThisMonth)}`}
+            linkLabel={"This month: " + formatCurrency(data.feesCollectedThisMonth)}
           />
           <DashboardStatCard
             icon={AlertCircle}
@@ -172,16 +118,28 @@ export default async function AdminDashboardPage() {
         <div className="mt-6 rounded-lg border border-border bg-card p-5">
           <h2 className="font-semibold text-navy-700">Quick actions</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Link href="/admin/students/add" className="flex flex-col items-center gap-2 rounded-md bg-navy-50 py-5 text-sm font-medium text-navy-700 hover:bg-navy-100">
+            <Link
+              href="/admin/students/add"
+              className="flex flex-col items-center gap-2 rounded-md bg-navy-50 py-5 text-sm font-medium text-navy-700 hover:bg-navy-100"
+            >
               <UserPlus className="h-5 w-5" /> Add student
             </Link>
-            <Link href="/admin/attendance" className="flex flex-col items-center gap-2 rounded-md bg-success/10 py-5 text-sm font-medium text-success hover:bg-success/15">
+            <Link
+              href="/admin/attendance"
+              className="flex flex-col items-center gap-2 rounded-md bg-success/10 py-5 text-sm font-medium text-success hover:bg-success/15"
+            >
               <CalendarCheck className="h-5 w-5" /> Mark attendance
             </Link>
-            <Link href="/admin/fees/collect" className="flex flex-col items-center gap-2 rounded-md bg-violet-50 py-5 text-sm font-medium text-violet-700 hover:bg-violet-100">
+            <Link
+              href="/admin/fees/collect"
+              className="flex flex-col items-center gap-2 rounded-md bg-violet-50 py-5 text-sm font-medium text-violet-700 hover:bg-violet-100"
+            >
               <Wallet className="h-5 w-5" /> Collect fee
             </Link>
-            <Link href="/admin/enquiries" className="flex flex-col items-center gap-2 rounded-md bg-saffron-50 py-5 text-sm font-medium text-saffron-700 hover:bg-saffron-100">
+            <Link
+              href="/admin/enquiries"
+              className="flex flex-col items-center gap-2 rounded-md bg-saffron-50 py-5 text-sm font-medium text-saffron-700 hover:bg-saffron-100"
+            >
               <Megaphone className="h-5 w-5" /> View enquiries
             </Link>
           </div>
@@ -216,7 +174,10 @@ export default async function AdminDashboardPage() {
                 </table>
               </div>
             )}
-            <Link href="/admin/students" className="mt-4 flex items-center gap-1 text-sm font-medium text-navy-600 hover:underline">
+            <Link
+              href="/admin/students"
+              className="mt-4 flex items-center gap-1 text-sm font-medium text-navy-600 hover:underline"
+            >
               View all students <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -228,19 +189,29 @@ export default async function AdminDashboardPage() {
             ) : (
               <ul className="mt-3 space-y-3">
                 {data.recentEnquiries.map((e) => (
-                  <li key={e._id.toString()} className="flex items-start gap-3 rounded-md border border-border p-3">
+                  <li
+                    key={e._id.toString()}
+                    className="flex items-start gap-3 rounded-md border border-border p-3"
+                  >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-navy-50 text-navy-600">
                       <Megaphone className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-sm font-medium">{e.name} &middot; {e.class}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(e.createdAt)}</p>
+                      <p className="text-sm font-medium">
+                        {e.name} &middot; {e.class}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(e.createdAt)}
+                      </p>
                     </div>
                   </li>
                 ))}
               </ul>
             )}
-            <Link href="/admin/enquiries" className="mt-4 flex items-center gap-1 text-sm font-medium text-navy-600 hover:underline">
+            <Link
+              href="/admin/enquiries"
+              className="mt-4 flex items-center gap-1 text-sm font-medium text-navy-600 hover:underline"
+            >
               View all enquiries <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>

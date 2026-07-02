@@ -44,8 +44,12 @@ export default function StatsBar() {
   }, []);
 
   return (
-    <section ref={ref} className="bg-navy-700 py-6">
-      <div className="container-edge grid grid-cols-2 gap-6 sm:grid-cols-4">
+    <section ref={ref} className="relative overflow-hidden bg-gradient-to-r from-navy-800 via-navy-700 to-navy-800 py-7">
+      <div className="pointer-events-none absolute inset-0 opacity-20" aria-hidden="true">
+        <div className="absolute -left-10 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-saffron-400 blur-3xl" />
+        <div className="absolute right-0 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-navy-300 blur-3xl" />
+      </div>
+      <div className="container-edge relative grid grid-cols-2 gap-4 sm:grid-cols-4">
         {STATS.map((stat, i) => (
           <StatItem key={i} stat={stat} active={active} />
         ))}
@@ -57,12 +61,12 @@ export default function StatsBar() {
 function StatItem({ stat, active }: { stat: typeof STATS[number]; active: boolean }) {
   const value = useCountUp(stat.value, active);
   return (
-    <div className="flex items-center gap-3">
+    <div className="glass-panel-dark hover-lift flex items-center gap-3 rounded-2xl px-3.5 py-3">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10">
         <stat.icon className="h-5 w-5 text-saffron-400" />
       </span>
       <div>
-        <p className="text-xl font-bold text-white">
+        <p className="font-display text-xl font-bold text-white">
           {value}{stat.suffix}
         </p>
         <p className="text-xs text-white/65">{stat.label}</p>

@@ -54,7 +54,7 @@ function fmtINR(n: number) {
 
 function inputCls(hasError: boolean) {
   return (
-    "w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-colors " +
+    "w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-all duration-200 " +
     "focus:ring-2 focus:ring-navy-700/30 " +
     (hasError
       ? "border-destructive bg-destructive/5 focus:border-destructive"
@@ -72,10 +72,10 @@ function ErrMsg({ msg }: { msg?: string }) {
 // ---------------------------------------------------------------
 function PageHeader() {
   return (
-    <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-border">
+    <header className="sticky top-0 z-40 border-b border-border bg-white/85 backdrop-blur-md shadow-soft">
       <div className="mx-auto max-w-3xl flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-navy-700 text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-navy-600 to-navy-800 text-white shadow-soft">
             <GraduationCap className="h-5 w-5" />
           </span>
           <span className="leading-tight">
@@ -274,7 +274,7 @@ function DetailsView({ onNext }: { onNext: (d: UserDetails) => void }) {
           </p>
         </div>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-5">
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-soft space-y-5">
 
           {/* Who are you */}
           <div>
@@ -392,7 +392,7 @@ function DetailsView({ onNext }: { onNext: (d: UserDetails) => void }) {
           <button
             type="button"
             onClick={handleContinue}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy-700 py-3.5 text-base font-semibold text-white shadow-md transition-all hover:bg-navy-800 active:scale-95"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-navy-700 py-3.5 text-base font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:bg-navy-800 hover:shadow-premium active:scale-95"
           >
             Continue to Payment
           </button>
@@ -445,7 +445,7 @@ function QRView({
         <div className="grid gap-5 md:grid-cols-2">
 
           {/* Left - Payment summary */}
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-soft space-y-4">
             <h2 className="text-sm font-semibold text-navy-700 uppercase tracking-wide">
               Your Payment Details
             </h2>
@@ -510,12 +510,12 @@ function QRView({
           </div>
 
           {/* Right - QR */}
-          <div className="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col items-center gap-4">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-soft flex flex-col items-center gap-4">
             <h2 className="text-sm font-semibold text-navy-700 uppercase tracking-wide self-start">
               Scan QR Code
             </h2>
 
-            <div className="rounded-2xl border-4 border-navy-700 bg-white p-3 shadow-inner">
+            <div className="rounded-2xl border-4 border-navy-700 bg-white p-3 shadow-inner animate-glow-pulse">
               {USE_IMAGE_QR ? (
                 // Replace with your real QR - set USE_IMAGE_QR=true and place image at /public/images/upi-qr.png
                 // eslint-disable-next-line @next/next/no-img-element
@@ -554,7 +554,7 @@ function QRView({
             <button
               type="button"
               onClick={onPaid}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3.5 text-base font-semibold text-white shadow-md transition-all hover:bg-orange-600 active:scale-95"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-saffron-600 py-3.5 text-base font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-accent active:scale-95"
             >
               <ShieldCheck className="h-5 w-5" />
               I Have Paid
@@ -662,7 +662,7 @@ function ConfirmView({
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-5"
+          className="rounded-2xl border border-border bg-card p-6 shadow-soft space-y-5"
         >
           {/* Read-only pre-filled fields */}
           <div className="grid grid-cols-2 gap-4">
@@ -735,7 +735,7 @@ function ConfirmView({
                   "flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-8 transition-colors " +
                   (errors.screenshot
                     ? "border-destructive bg-destructive/5"
-                    : "border-border hover:border-navy-400 hover:bg-secondary/40")
+                    : "border-border hover:border-navy-400 hover:bg-secondary/40 hover:-translate-y-0.5")
                 }
               >
                 <Upload className="h-6 w-6 text-muted-foreground" />
@@ -769,7 +769,7 @@ function ConfirmView({
             <button
               type="submit"
               disabled={submitting}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-navy-700 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-navy-800 disabled:opacity-60 disabled:cursor-not-allowed active:scale-95"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-navy-700 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:bg-navy-800 hover:shadow-premium disabled:opacity-60 disabled:cursor-not-allowed active:scale-95"
             >
               {submitting ? (
                 <>
@@ -824,7 +824,7 @@ function SuccessView({ details, utr }: { details: UserDetails; utr: string }) {
     <div className="min-h-screen bg-background">
       <PageHeader />
       <main className="mx-auto max-w-md px-4 py-16 sm:px-6 flex flex-col items-center text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-50 border-4 border-green-100 mb-6">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-emerald-100 border-4 border-green-100 shadow-soft mb-6 animate-scale-in">
           <CheckCircle2 className="h-10 w-10 text-green-600" />
         </div>
 
@@ -846,7 +846,7 @@ function SuccessView({ details, utr }: { details: UserDetails; utr: string }) {
           </a>
         </p>
 
-        <div className="w-full rounded-xl border border-border bg-card p-5 text-left mb-8 space-y-2.5">
+        <div className="w-full rounded-2xl border border-border bg-card p-5 text-left mb-8 space-y-2.5 shadow-soft">
           <h2 className="text-sm font-semibold text-navy-700 mb-3">
             Submission Summary
           </h2>
@@ -860,7 +860,7 @@ function SuccessView({ details, utr }: { details: UserDetails; utr: string }) {
 
         <Link
           href="/"
-          className="flex items-center justify-center gap-2 rounded-xl bg-navy-700 px-8 py-3 text-sm font-semibold text-white hover:bg-navy-800 transition-colors"
+          className="flex items-center justify-center gap-2 rounded-xl bg-navy-700 px-8 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:bg-navy-800 hover:shadow-premium"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Website

@@ -4,26 +4,7 @@ import AdminHeader from "@/components/admin/Header";
 import StudentTable from "@/components/admin/students/StudentTable";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, CLASS_OPTIONS } from "@/lib/utils";
-import dbConnect from "@/lib/db";
-import Student from "@/models/Student";
-import type { StudentDTO } from "@/types";
-
-async function getStudents(): Promise<StudentDTO[]> {
-  await dbConnect();
-  const students = await Student.find({ isActive: true }).sort({ createdAt: -1 }).lean();
-  // .lean() returns plain JS objects — Mongoose virtuals like `pendingFee`
-  // are NOT included. Compute it explicitly here so every downstream
-  // consumer (stat cards, table fee filter, fee progress bar) gets the
-  // correct value instead of undefined.
-  return JSON.parse(
-    JSON.stringify(
-      students.map((s) => ({
-        ...s,
-        pendingFee: Math.max((s.totalFee ?? 0) - (s.feesPaid ?? 0), 0),
-      }))
-    )
-  );
-}
+import { getStudentsWithFees } from "@/lib/data";
 
 function StatCard({
   icon: Icon,
@@ -53,7 +34,7 @@ function StatCard({
 }
 
 export default async function StudentsPage() {
-  const students = await getStudents();
+  const students = await getStudentsWithFees({ createdAt: -1 });
 
   const totalFeeCollectable = students.reduce((s, x) => s + x.totalFee, 0);
   const totalPending = students.reduce((s, x) => s + x.pendingFee, 0);

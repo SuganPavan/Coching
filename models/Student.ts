@@ -43,8 +43,8 @@ const StudentSchema = new Schema<IStudent>(
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
+    toJSON: { virtuals: false },
+    toObject: { virtuals: false },
   }
 );
 

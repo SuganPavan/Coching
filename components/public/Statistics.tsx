@@ -70,7 +70,7 @@ function StatCard({ stat, active }: { stat: (typeof STATS)[number]; active: bool
   const value = useCountUp(stat.value, active);
   return (
     <div>
-      <p className="text-3xl font-semibold tracking-tight text-navy-700 sm:text-4xl">
+      <p className="font-display text-3xl font-bold tracking-tight text-navy-700 sm:text-4xl">
         {value}
         {stat.suffix}
       </p>

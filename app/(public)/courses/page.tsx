@@ -14,9 +14,10 @@ export default async function CoursesPage() {
 
   return (
     <div>
-      <section className="bg-secondary/40 py-14">
-        <div className="container-edge text-center">
-          <h1 className="text-3xl font-semibold text-navy-700 sm:text-4xl">Our courses</h1>
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#eef2f7] to-[#f6f8fb] py-16">
+        <div className="pointer-events-none absolute -right-10 -top-14 h-64 w-64 rounded-full bg-saffron-200/40 blur-3xl" aria-hidden="true" />
+        <div className="container-edge relative text-center">
+          <h1 className="font-display text-3xl font-extrabold text-navy-700 sm:text-4xl">Our courses</h1>
           <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
             Structured programs for Class XI and XII across Science, Commerce, and Arts streams.
           </p>
@@ -25,15 +26,18 @@ export default async function CoursesPage() {
 
       <section className="container-edge py-16">
         {courses.length === 0 ? (
-          <p className="text-center text-muted-foreground">Course details will appear here shortly.</p>
+          <div className="mx-auto max-w-md rounded-2xl border border-dashed border-border bg-secondary/20 py-14 text-center">
+            <GraduationCap className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 text-muted-foreground">Course details will appear here shortly.</p>
+          </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((c) => (
-              <div key={c._id.toString()} className="rounded-lg border border-border bg-card p-6">
-                <span className="flex h-11 w-11 items-center justify-center rounded-md bg-navy-50 text-navy-600">
+              <div key={c._id.toString()} className="hover-lift rounded-2xl border border-border bg-card p-6 shadow-soft hover:border-navy-100 hover:shadow-premium">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
                   <GraduationCap className="h-5 w-5" />
                 </span>
-                <h3 className="mt-4 text-lg font-semibold text-navy-700">{c.name}</h3>
+                <h3 className="mt-4 font-display text-lg font-bold text-navy-700">{c.name}</h3>
                 <p className="text-sm text-muted-foreground">Class {c.class} &middot; {c.stream}</p>
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
