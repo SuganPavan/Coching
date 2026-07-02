@@ -188,7 +188,7 @@ export default async function AdminDashboardPage() {
               <p className="mt-4 text-sm text-muted-foreground">No enquiries yet.</p>
             ) : (
               <ul className="mt-3 space-y-3">
-                {data.recentEnquiries.map((e) => (
+                {data.recentEnquiries.map((e: any) => (
                   <li
                     key={e._id.toString()}
                     className="flex items-start gap-3 rounded-md border border-border p-3"
