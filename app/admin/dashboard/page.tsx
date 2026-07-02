@@ -163,7 +163,7 @@ export default async function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.recentStudents.map((s) => (
+                    {data.recentStudents.map((s: any) => (
                       <tr key={s._id.toString()} className="border-t border-border">
                         <td className="py-2.5">{s.name}</td>
                         <td className="py-2.5 text-muted-foreground">{s.class}</td>
