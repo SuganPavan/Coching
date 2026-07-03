@@ -5,20 +5,11 @@ import AdminHeader from "@/components/admin/Header";
 import StudentForm from "@/components/admin/students/StudentForm";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import dbConnect from "@/lib/db";
-import Student from "@/models/Student";
-import type { StudentDTO } from "@/types";
-
-async function getStudent(id: string): Promise<StudentDTO | null> {
-  await dbConnect();
-  const student = await Student.findById(id).lean();
-  if (!student) return null;
-  return JSON.parse(JSON.stringify(student));
-}
+import { getStudentWithFees } from "@/lib/data";
 
 export default async function EditStudentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const student = await getStudent(id);
+  const student = await getStudentWithFees(id);
   if (!student) notFound();
 
   return (

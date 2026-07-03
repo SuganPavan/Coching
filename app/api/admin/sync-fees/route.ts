@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
-import Student from "@/models/Student";
+import Student, { IStudent } from "@/models/Student";
 import Fee from "@/models/Fee";
 import { auth } from "@/auth";
+import type { AnyBulkWriteOperation } from "mongoose";
 
 /**
  * POST /api/admin/sync-fees
@@ -55,7 +56,7 @@ export async function POST() {
         },
       };
     })
-    .filter(Boolean) as object[];
+    .filter(Boolean) as AnyBulkWriteOperation<IStudent>[];
 
   if (bulkOps.length > 0) {
     await Student.bulkWrite(bulkOps);

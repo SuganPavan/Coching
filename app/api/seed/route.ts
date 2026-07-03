@@ -12,9 +12,21 @@ import { generateReceiptNumber } from "@/lib/utils";
 
 // Visit /api/seed once (GET) in development to populate demo data.
 // Guarded by SEED_SECRET so it can't be triggered accidentally in production.
+// Leaving SEED_SECRET unset is a documented convenience for local dev
+// (see .env.example) — but that must never extend to production, where an
+// unset secret would otherwise leave this endpoint fully public, including
+// the admin login credentials it returns in its JSON response.
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const secret = searchParams.get("secret");
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (isProduction && !process.env.SEED_SECRET) {
+    return NextResponse.json(
+      { error: "SEED_SECRET must be configured before seeding in production" },
+      { status: 401 }
+    );
+  }
 
   if (process.env.SEED_SECRET && secret !== process.env.SEED_SECRET) {
     return NextResponse.json({ error: "Invalid or missing secret" }, { status: 401 });

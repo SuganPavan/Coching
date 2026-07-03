@@ -5,6 +5,7 @@ import Fee from "@/models/Fee";
 import Student from "@/models/Student";
 import { auth } from "@/auth";
 import { generateReceiptNumber } from "@/lib/utils";
+import { getRazorpay } from "@/lib/razorpay";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -26,6 +27,25 @@ export async function POST(req: NextRequest) {
 
   if (expectedSignature !== razorpay_signature) {
     return NextResponse.json({ error: "Payment verification failed" }, { status: 400 });
+  }
+
+  // CRITICAL: the signature above only proves order_id+payment_id are an
+  // authentic Razorpay-issued pair — it does NOT cover `amount`, which
+  // otherwise comes straight from the client request body. Without this
+  // check, a tampered request could reuse a valid signature from a small
+  // real payment alongside a fabricated, much larger `amount`, and that
+  // fabricated figure would be written straight into the Fee ledger.
+  // Fetching the order from Razorpay gives the authoritative amount to
+  // compare against.
+  try {
+    const razorpay = getRazorpay();
+    const order = await razorpay.orders.fetch(razorpay_order_id);
+    const expectedPaise = Math.round(Number(amount) * 100);
+    if (order.amount !== expectedPaise || order.notes?.studentId !== studentId) {
+      return NextResponse.json({ error: "Payment amount or student mismatch" }, { status: 400 });
+    }
+  } catch {
+    return NextResponse.json({ error: "Could not verify payment order" }, { status: 400 });
   }
 
   await dbConnect();

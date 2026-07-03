@@ -86,7 +86,12 @@ export default function StudentForm({ student }: StudentFormProps) {
         email: form.email.trim() || undefined,
         address: form.address.trim(),
         totalFee: Number(form.totalFee),
-        feesPaid: Number(form.feesPaid) || 0,
+        // Only send an initial feesPaid when creating a new student (no Fee
+        // ledger exists yet). On edit this is ignored by the API anyway —
+        // the ledger (via Collect Fee / Razorpay) is the only source of
+        // truth for an existing student's feesPaid, so it's omitted here
+        // to avoid ever appearing to "resubmit" a stale value.
+        ...(isEdit ? {} : { feesPaid: Number(form.feesPaid) || 0 }),
       };
 
       const res = await fetch(isEdit ? `/api/students/${student._id}` : "/api/students", {
@@ -245,14 +250,33 @@ export default function StudentForm({ student }: StudentFormProps) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="feesPaid">Fees paid so far (₹)</Label>
-            <Input
-              id="feesPaid"
-              type="number"
-              min={0}
-              value={form.feesPaid}
-              onChange={(e) => update("feesPaid", e.target.value)}
-              placeholder="e.g. 20000"
-            />
+            {isEdit ? (
+              <>
+                <Input
+                  id="feesPaid"
+                  type="number"
+                  value={form.feesPaid}
+                  disabled
+                  className="bg-secondary/60 text-muted-foreground"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Calculated from payment records. Use{" "}
+                  <a href="/admin/fees/collect" className="underline hover:text-navy-600">
+                    Collect fee
+                  </a>{" "}
+                  to record a new payment.
+                </p>
+              </>
+            ) : (
+              <Input
+                id="feesPaid"
+                type="number"
+                min={0}
+                value={form.feesPaid}
+                onChange={(e) => update("feesPaid", e.target.value)}
+                placeholder="e.g. 20000"
+              />
+            )}
           </div>
         </div>
 

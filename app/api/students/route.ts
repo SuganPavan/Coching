@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Student from "@/models/Student";
+import Fee from "@/models/Fee";
 import { auth } from "@/auth";
+import { generateReceiptNumber } from "@/lib/utils";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -36,6 +38,15 @@ export async function POST(req: NextRequest) {
   await dbConnect();
   const body = await req.json();
 
+  // If an initial "fees paid so far" amount was entered at enrollment,
+  // it must land in the Fee ledger too — not just on the Student document.
+  // Every fee figure elsewhere in the app (Fees Collected, Pending Fees,
+  // the student's own badge) is computed from the ledger, never from
+  // Student.feesPaid directly, so a payment recorded only on the student
+  // doc is invisible everywhere else: Fees Collected shows ₹0 for it and
+  // Pending shows the full totalFee, even though feesPaid says otherwise.
+  const openingBalance = Number(body.feesPaid) || 0;
+
   try {
     // Auto-generate roll number if not supplied.
     //
@@ -51,6 +62,9 @@ export async function POST(req: NextRequest) {
     }
 
     const student = await Student.create(body);
+    if (openingBalance > 0) {
+      await createOpeningBalanceFee(student._id, openingBalance, session);
+    }
     return NextResponse.json(student, { status: 201 });
   } catch (error: unknown) {
     // Duplicate rollNo from a race condition — retry with a fresh max query
@@ -58,6 +72,9 @@ export async function POST(req: NextRequest) {
       try {
         body.rollNo = await generateRollNo();
         const student = await Student.create(body);
+        if (openingBalance > 0) {
+          await createOpeningBalanceFee(student._id, openingBalance, session);
+        }
         return NextResponse.json(student, { status: 201 });
       } catch (retryError: unknown) {
         if (isDuplicateKeyError(retryError, "rollNo")) {
@@ -83,6 +100,34 @@ export async function POST(req: NextRequest) {
         : "Failed to create student";
 
     return NextResponse.json({ error: message }, { status: 400 });
+  }
+}
+
+/**
+ * Records a student's initial "fees paid so far" amount (entered at
+ * enrollment) as a real Fee ledger entry, so it's counted everywhere the
+ * ledger is the source of truth (dashboard, fees list, student badges).
+ * Failures here are logged but not thrown — we don't want to fail student
+ * creation over this; worst case the admin re-records it via Collect Fee
+ * and/or runs Sync Fee Data from Settings.
+ */
+async function createOpeningBalanceFee(
+  studentId: unknown,
+  amount: number,
+  session: { user?: { id?: string } }
+) {
+  try {
+    await Fee.create({
+      studentId,
+      amount,
+      paymentMethod: "cash",
+      month: "Opening balance",
+      remarks: "Fees paid prior to enrollment in this system",
+      receiptNumber: generateReceiptNumber(),
+      collectedBy: session.user?.id,
+    });
+  } catch (error) {
+    console.error("[Students] Failed to create opening balance Fee record:", error);
   }
 }
 

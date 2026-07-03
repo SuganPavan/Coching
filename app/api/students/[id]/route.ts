@@ -22,8 +22,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   await dbConnect();
   const body = await req.json();
 
+  // feesPaid must never be set directly through this endpoint. It is
+  // derived from the Fee ledger (see lib/data.ts / POST /api/fees /
+  // /api/razorpay/verify) and recomputed there on every payment. Accepting
+  // it here would let a stale or edited value silently overwrite the
+  // ledger-accurate total, causing "Fees Collected" to drift from reality.
+  // isActive is likewise excluded — deactivation goes through DELETE only.
+  const { feesPaid: _feesPaid, isActive: _isActive, ...safeBody } = body;
+
   try {
-    const student = await Student.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+    const student = await Student.findByIdAndUpdate(id, safeBody, { new: true, runValidators: true });
     if (!student) return NextResponse.json({ error: "Student not found" }, { status: 404 });
     return NextResponse.json(student);
   } catch (error: unknown) {

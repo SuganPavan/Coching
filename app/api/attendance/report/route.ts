@@ -18,9 +18,14 @@ export async function GET(req: NextRequest) {
 
   if (month) {
     const [year, mon] = month.split("-").map(Number);
-    const start = new Date(year, mon - 1, 1);
-    const end = new Date(year, mon, 0, 23, 59, 59, 999);
-    query.date = { $gte: start, $lte: end };
+    // Use UTC boundaries to match how attendance dates are stored
+    // (see getUTCDayBounds in lib/utils.ts and the attendance save route).
+    // Using the server's local timezone here (as before) can silently miss
+    // or misattribute records saved right at a month boundary whenever the
+    // server isn't running in UTC.
+    const start = new Date(Date.UTC(year, mon - 1, 1, 0, 0, 0, 0));
+    const end = new Date(Date.UTC(year, mon, 1, 0, 0, 0, 0));
+    query.date = { $gte: start, $lt: end };
   }
   if (studentClass) query.class = studentClass;
 
@@ -39,7 +44,12 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const present = studentRecords.filter((r) => r.status === "present").length;
+    // "late" counts toward presence, matching the dashboard's presentToday
+    // calculation (app/admin/dashboard/page.tsx) — otherwise a student
+    // marked "late" would count as present on the dashboard but as
+    // absent-equivalent here, giving two different attendance pictures
+    // for the same day.
+    const present = studentRecords.filter((r) => r.status === "present" || r.status === "late").length;
     const total = studentRecords.length;
     const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
 

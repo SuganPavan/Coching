@@ -4,8 +4,9 @@ import Student from "@/models/Student";
 import Faculty from "@/models/Faculty";
 import Course from "@/models/Course";
 import Attendance from "@/models/Attendance";
-import Fee from "@/models/Fee";
 import { auth } from "@/auth";
+import { getUTCDayBounds } from "@/lib/utils";
+import { getDashboardFeeTotals } from "@/lib/data";
 
 export async function GET() {
   const session = await auth();
@@ -19,53 +20,28 @@ export async function GET() {
     Course.countDocuments({ isActive: true }),
   ]);
 
-  // Attendance today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const todaysAttendance = await Attendance.find({ date: { $gte: today, $lt: tomorrow } }).lean();
+  // Attendance today — UTC boundaries, matching how attendance dates are
+  // stored (see the attendance save route). Using local server time here
+  // would silently miss today's attendance whenever the server isn't
+  // running in UTC.
+  const { start: todayStart, end: todayEnd } = getUTCDayBounds(new Date());
+  const todaysAttendance = await Attendance.find({ date: { $gte: todayStart, $lt: todayEnd } }).lean();
   const presentToday = todaysAttendance.reduce(
-    (sum, a) => sum + a.records.filter((r) => r.status === "present").length,
+    (sum, a) => sum + a.records.filter((r) => r.status === "present" || r.status === "late").length,
     0
   );
   const totalToday = todaysAttendance.reduce((sum, a) => sum + a.records.length, 0);
 
-  // Fees collected this month - only from active students.
-  // Student deletion is a soft delete (isActive: false) that preserves
-  // historical Fee records for accounting, so we must exclude those from
-  // the live "Fees Collected" total or a deleted student's old payment
-  // keeps inflating the number forever.
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const feesAgg = await Fee.aggregate([
-    { $match: { paymentDate: { $gte: startOfMonth } } },
-    {
-      $lookup: {
-        from: "students",
-        localField: "studentId",
-        foreignField: "_id",
-        as: "student",
-      },
-    },
-    { $unwind: "$student" },
-    { $match: { "student.isActive": true } },
-    { $group: { _id: null, total: { $sum: "$amount" } } },
-  ]);
-  const feesCollectedThisMonth = feesAgg[0]?.total || 0;
-
-  // Pending fees across all active students
-  const pendingAgg = await Student.aggregate([
-    { $match: { isActive: true } },
-    { $project: { pending: { $subtract: ["$totalFee", "$feesPaid"] } } },
-    { $group: { _id: null, total: { $sum: "$pending" } } },
-  ]);
-  const pendingFees = pendingAgg[0]?.total || 0;
+  // Fee totals — shared helper, always from the Fee ledger, always
+  // excluding soft-deleted students, always clamping pending at 0.
+  const { allTime: feesCollectedAllTime, thisMonth: feesCollectedThisMonth, pending: pendingFees } =
+    await getDashboardFeeTotals();
 
   return NextResponse.json({
     totalStudents,
     presentToday,
     totalToday,
+    feesCollectedAllTime,
     feesCollectedThisMonth,
     pendingFees,
     totalCourses,

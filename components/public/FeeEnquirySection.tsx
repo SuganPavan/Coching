@@ -5,13 +5,18 @@ import ScrollReveal from "@/components/public/ScrollReveal";
 import dbConnect from "@/lib/db";
 import Course from "@/models/Course";
 
-async function getCourses() {
+interface FeeRow {
+  label: string;
+  fee: number;
+}
+
+async function getCourses(): Promise<{ class: string; stream: string; fee: number }[]> {
   await dbConnect();
   const courses = await Course.find({ isActive: true }).sort({ class: 1, stream: 1 }).lean();
   return JSON.parse(JSON.stringify(courses));
 }
 
-const FALLBACK_FEES = [
+const FALLBACK_FEES: FeeRow[] = [
   { label: "Class XI Science (PCM, PCB)", fee: 60000 },
   { label: "Class XI Commerce", fee: 45000 },
   { label: "Class XI Arts", fee: 38000 },
@@ -22,9 +27,8 @@ const FALLBACK_FEES = [
 
 export default async function FeeEnquirySection() {
   const courses = await getCourses();
-  console.log("Fetched courses for FeeEnquirySection:", courses);
-  const feeRows = courses.length > 0
-    ? courses.map((c: { stream: string; class: string; fee: number }) => ({
+  const feeRows: FeeRow[] = courses.length > 0
+    ? courses.map((c) => ({
         label: `Class ${c.class} ${c.stream}`.replace("XI & XII", "XI/XII"),
         fee: c.fee,
       }))

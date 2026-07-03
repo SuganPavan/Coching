@@ -15,6 +15,7 @@ export interface StudentDTO {
   totalFee: number;
   feesPaid: number;
   pendingFee: number;
+  createdAt?: string;
 }
 
 export interface FacultyDTO {

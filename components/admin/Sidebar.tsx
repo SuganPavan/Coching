@@ -86,7 +86,9 @@ export default function Sidebar() {
             <p className="truncate text-xs text-white/50 leading-tight">{adminEmail}</p>
           </div>
           {isSuperAdmin && (
-            <Crown className="h-3.5 w-3.5 shrink-0 text-saffron-400" title="Super Admin" />
+            <span title="Super Admin" className="shrink-0">
+              <Crown className="h-3.5 w-3.5 text-saffron-400" />
+            </span>
           )}
         </div>
         <button

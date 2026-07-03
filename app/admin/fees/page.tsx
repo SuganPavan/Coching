@@ -3,28 +3,10 @@ import { Plus } from "lucide-react";
 import AdminHeader from "@/components/admin/Header";
 import FeesOverviewTable from "@/components/admin/fees/FeesOverviewTable";
 import { Button } from "@/components/ui/button";
-import dbConnect from "@/lib/db";
-import Student from "@/models/Student";
-import type { StudentDTO } from "@/types";
-
-async function getStudents(): Promise<StudentDTO[]> {
-  await dbConnect();
-  const students = await Student.aggregate([
-    { $match: { isActive: true } },
-    {
-      $addFields: {
-        pendingFee: {
-          $max: [{ $subtract: ["$totalFee", "$feesPaid"] }, 0],
-        },
-      },
-    },
-    { $sort: { createdAt: -1 } },
-  ]);
-  return JSON.parse(JSON.stringify(students));
-}
+import { getStudentsWithFees } from "@/lib/data";
 
 export default async function FeesPage() {
-  const students = await getStudents();
+  const students = await getStudentsWithFees({ createdAt: -1 });
 
   return (
     <div>

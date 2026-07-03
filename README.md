@@ -8,9 +8,8 @@ A full-stack coaching institute management system for Class XI & XII students bu
 - **Admin panel** (`/admin/dashboard`) — Dashboard stats, Student CRUD, Attendance marking & reports, Fee collection (cash + Razorpay), Faculty & Course management, Gallery uploads (Cloudinary), Enquiry tracking.
 - **Auth.js** credentials-based admin login, protected by middleware.
 - **Razorpay** integration with server-side HMAC signature verification before any fee is recorded as paid.
-------------------------------------------------------------------------
 
-## Getting started Changes
+## Getting started
 
 ### 1. Install dependencies
 
@@ -25,12 +24,6 @@ Copy `.env.example` to `.env.local` and fill in your own values:
 ```bash
 cp .env.example .env.local
 ```
-
-You'll need:
-- A **MongoDB Atlas** cluster connection string
-- A **Cloudinary** account (cloud name, API key, API secret)
-- A **Razorpay** account (test mode keys are fine for development)
-- An `AUTH_SECRET` — generate one with `npx auth secret` or `openssl rand -base64 32`
 
 You'll need:
 - A **MongoDB Atlas** cluster connection string
@@ -106,4 +99,3 @@ middleware.ts      → protects /admin/* routes
 ## Tech stack
 
 Next.js 15 (App Router) · TypeScript · Tailwind CSS · Shadcn-style UI · MongoDB Atlas + Mongoose · Auth.js v5 · Cloudinary · Razorpay
----------------------------------------------------------------
